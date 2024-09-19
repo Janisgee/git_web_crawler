@@ -9,22 +9,30 @@ func main() {
 
 	if len(os.Args) < 2 {
 		fmt.Printf("no website provided\n")
-		os.Exit(1)
+		return
 	}
 
 	if len(os.Args) > 2 {
 		fmt.Printf("too many arguments provided\n")
-		os.Exit(1)
+		return
 	}
 
 	rawBaseURL := os.Args[1]
 
-	pages := make(map[string]int)
+	maxConcurrency := 20
 
-	crawlPage(rawBaseURL, rawBaseURL, pages)
+	cfg, err := configure(rawBaseURL, maxConcurrency)
+	if err != nil {
+		fmt.Printf("error in configuring struct:%v", err)
+		return
+	}
 
-	for urls, counts := range pages {
-		fmt.Printf("%d   Key: %s\n", counts, urls)
+	cfg.wg.Add(1)
+	go cfg.crawlPage(rawBaseURL)
+	cfg.wg.Wait()
+
+	for normalizeURL, count := range cfg.pages {
+		fmt.Printf("%d   - %v\n", count, normalizeURL)
 	}
 
 }
