@@ -12,6 +12,10 @@ func (cfg *config) crawlPage(rawCurrentURL string) {
 		<-cfg.concurrencyControl
 		cfg.wg.Done()
 	}()
+	// Check if pages map bigger than maxPages
+	if cfg.pagelen() >= cfg.maxPages {
+		return
+	}
 
 	//Make sure the rawCurrentURL is on the same domain as the rawBaseURL.
 	parsedCurrentUrl, err := url.Parse(rawCurrentURL)
